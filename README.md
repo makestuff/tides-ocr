@@ -1,7 +1,9 @@
 # Extract machine-readable tidal information from the PLA PDF
 The Port of London Authority [publish tidal predictions](http://www.pla.co.uk/Safety/Tide-Tables) in advance for the whole year. They publish it in the form of a PDF, which is great for humans but not so good for machines. So this thing will download the PDF and OCR it to extract the raw data, so you can run your own analytics on it.
 
-**get_pages.sh:** Download the 2022 PDF from the PLA website, extract the tide tables as hi-res images.
+**get_all.sh** Download the tide-table PDFs from the PLA website.
+
+**get_pages.sh:** Extract the tide tables as hi-res PNG images.
 
 **main.py:** OCR the pages, print sample.
 

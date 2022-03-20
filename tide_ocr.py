@@ -4,16 +4,16 @@ from matplotlib import pyplot as plt
 import datetime
 import pytz
 
-YEAR = 2022
-XMARGIN = 900
-WIDTH = 7200
-EVEN_OFFSET = 1470
+#YEAR = 2021
+#XMARGIN = 800
+#WIDTH = 7100
+#EVEN_OFFSET = 1100
 TARGET_WIDTH = 80
 TARGET_HEIGHT = 110
 
 # Some pages may have spurious symbols, which we need to erase first
 fixups = {
-  "pages/20.png": [
+  "2022/20.png": [
     (5465, 600, 120, 100),
     (6500, 600, 120, 100)
   ]
@@ -35,12 +35,6 @@ def image_load_crop_fixup(name, x, y, w):
     for x, y, w, h in fixups[name]:
       erase_region(cropped, x, y, w, h)
   return cropped
-
-# Display the named image, after cropping and fixups
-def display_cropped(name, y):
-  cropped = image_load_crop_fixup(name, XMARGIN, y, WIDTH)
-  f = plt.figure(figsize=(10, 10))
-  plt.imshow(fix_color(cropped))
 
 # The cv2.findContours() operation seems to find "inner" bounding rects sometimes (e.g the "hole" in a digit 6). We need to remove them.
 def remove_inners(bboxes):
@@ -135,13 +129,6 @@ def display_rows(image, row_list):
       sp[i].imshow(fix_color(digit))
     plt.show()
 
-# Put it all together: load an image, crop it, and display some rows
-def display_column(name, crop_y, col, num_rows=1, first_row=0):
-  cropped, col_list = load_page(name, XMARGIN, crop_y, WIDTH)
-  row_list = extract_rows(col_list[col])
-  row_sublist = row_list[first_row:first_row + num_rows]
-  display_rows(cropped, row_sublist)
-
 # The first four symbols are the time, the remainder is the depth
 def parse_line(row, chars):
   row_text = "".join([chars[i] for i in row])
@@ -157,9 +144,6 @@ def time_delta(t):
 
 # Simple OCR for tide tables
 class SimpleOCR:
-  _symbol_map = []
-  _this_char = 0
-  _columns = [[],[],[],[],[],[],[]]
 
   # Return an integer value representing the symbol
   def identify_symbol(self, symbol):
@@ -186,11 +170,23 @@ class SimpleOCR:
     return text_list
 
   # Construct from a given directory of pages (e.g {dir}/{NN}.png)
-  def __init__(self, dir, start_page = 0, num_pages = 48):
+  def __init__(self, dir, year, xmargin, width, even_offset, start_page = 0, num_pages = 48):
+    self._dir = dir
+    self._year = year
+    self._xmargin = xmargin
+    self._width = width
+    self._even_offset = even_offset
+    self._start_page = start_page
+    self._num_pages = num_pages
+    self._symbol_map = []
+    self._this_char = 0
+    self._columns = [[],[],[],[],[],[],[]]
+
+  def do_ocr(self):
     print("Reading pages:")
-    for p in range(start_page, start_page + num_pages):
-      y = EVEN_OFFSET if p%2==0 else 0
-      cropped, col_list = load_page(f"{dir}/{p:02}.png", XMARGIN, y, WIDTH)
+    for p in range(self._start_page, self._start_page + self._num_pages):
+      y = self._even_offset if p%2==0 else 0
+      cropped, col_list = load_page(f"{self._dir}/{p:02}.png", self._xmargin, y, self._width)
       for i in range(len(col_list)):
         row_list = extract_rows(col_list[i])
         self._columns[i].extend(self.read_column(cropped, row_list))
@@ -223,7 +219,7 @@ class SimpleOCR:
       rows = self._columns[i]
       num_rows = len(rows)
       day = 1
-      date = datetime.datetime(YEAR, 1, 1, tzinfo=datetime.timezone.utc)
+      date = datetime.datetime(self._year, 1, 1, tzinfo=datetime.timezone.utc)
       t0, h0 = parse_line(rows[0], chars)
       t1, h1 = parse_line(rows[1], chars)
       id = "HW" if h0 > h1 else "LW"  # find out whether h0 is a HW or LW
@@ -242,3 +238,18 @@ class SimpleOCR:
         t0 = t1
         h0 = h1
     return results
+
+  # Display the named image, after cropping and fixups
+  def display_cropped(self, name, even):
+    y = self._even_offset if even else 0
+    cropped = image_load_crop_fixup(f"{self._dir}/{name}", self._xmargin, y, self._width)
+    f = plt.figure(figsize=(20, 20))
+    plt.imshow(fix_color(cropped))
+
+  # Put it all together: load an image, crop it, and display some rows
+  def display_column(self, name, even, col, num_rows=1, first_row=0):
+    y = self._even_offset if even else 0
+    cropped, col_list = load_page(f"{self._dir}/{name}", self._xmargin, y, self._width)
+    row_list = extract_rows(col_list[col])
+    row_sublist = row_list[first_row:first_row + num_rows]
+    display_rows(cropped, row_sublist)
