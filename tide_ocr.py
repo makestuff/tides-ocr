@@ -183,15 +183,13 @@ class SimpleOCR:
     self._columns = [[],[],[],[],[],[],[]]
 
   def do_ocr(self):
-    print("Reading pages:")
     for p in range(self._start_page, self._start_page + self._num_pages):
       y = self._even_offset if p%2==0 else 0
       cropped, col_list = load_page(f"{self._dir}/{p:02}.png", self._xmargin, y, self._width)
       for i in range(len(col_list)):
         row_list = extract_rows(col_list[i])
         self._columns[i].extend(self.read_column(cropped, row_list))
-      print("  {}: Seen {} distinct symbols!".format(p, len(self._symbol_map)))
-    print()
+      print(f"    Cumulative analysis of page {p} revealed {len(self._symbol_map)} distinct symbols!")
 
   # Show all the unique symbols we've seen
   def show_symbols(self):
