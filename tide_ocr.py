@@ -170,12 +170,13 @@ class SimpleOCR:
     return text_list
 
   # Construct from a given directory of pages (e.g {dir}/{NN}.png)
-  def __init__(self, dir, year, xmargin, width, even_offset, start_page = 0, num_pages = 48):
+  def __init__(self, dir, year, xmargin, width, even_offset, force_even, start_page = 0, num_pages = 48):
     self._dir = dir
     self._year = year
     self._xmargin = xmargin
     self._width = width
     self._even_offset = even_offset
+    self.force_even = force_even
     self._start_page = start_page
     self._num_pages = num_pages
     self._symbol_map = []
@@ -184,7 +185,7 @@ class SimpleOCR:
 
   def do_ocr(self):
     for p in range(self._start_page, self._start_page + self._num_pages):
-      y = self._even_offset if p%2==0 else 0
+      y = self._even_offset if p%2==0 or self.force_even else 0
       cropped, col_list = load_page(f"{self._dir}/{p:02}.png", self._xmargin, y, self._width)
       for i in range(len(col_list)):
         row_list = extract_rows(col_list[i])
@@ -209,8 +210,16 @@ class SimpleOCR:
         sp[i][j].imshow(fix_color(sym))
     plt.show()
 
+  # Validate symbol counts
+  def validate_symbol_count(self, chars):
+    num_syms = len(self._symbol_map)
+    num_chrs = len(chars)
+    if num_syms != num_chrs:
+      raise Exception(f"The OCR operation produced {num_syms} symbols, but parse_all() was given {num_chrs} chars")
+
   # Convert all columns to typed data
   def parse_all(self, chars):
+    self.validate_symbol_count(chars)
     lnt = pytz.timezone('Europe/London')
     results = [[],[],[],[],[],[],[]]
     for i in range(len(self._columns)):

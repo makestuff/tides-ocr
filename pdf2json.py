@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import tide_ocr
+from metadata import METADATA, LOCATIONS
 import urllib.request
 import os
 import sys
@@ -8,89 +9,26 @@ import pathlib
 import datetime
 import json
 
-# Locations given in the tide tables, numbered 0-6
-LOCATIONS = [
-  "Walton-on-the-Naze",
-  "Margate",
-  "Shivering Sand",
-  "Southend-on-Sea",
-  "Tilbury",
-  "North Woolwich",
-  "London Bridge (Tower Pier)"
-]
-
-# Metadata for each year
-METADATA = {
-  2016: (
-    "http://pla.co.uk/assets/platidetablesmaster2016lr.pdf", 830, 7000, 1100, (
-      "0345" + ".896" +
-      "7120" + "3859" +
-      "62"
-    )
-  ),
-  2017: (
-    "http://pla.co.uk/assets/platidetables2017.pdf", 830, 7000, 1100, (
-      "0134" + ".279" +
-      "5869" + "0538" +
-      "6208" + "3628" +
-      "0623" + "9-"
-    )
-  ),
-  2018: (
-    "http://pla.co.uk/assets/pla-tide-tables-2018.pdf", 830, 7000, 1100, (
-      "0426" + ".138" +
-      "5973" + "0962" +
-      "8-"
-    )
-  ),
-  2019: (
-    "http://pla.co.uk/assets/pla-tide-tables-2019.pdf", 830, 7000, 1100, (
-      "016." + "7438" +
-      "2598" + "3059" +
-      "26-"
-    )
-  ),
-  2020: (
-    "http://pla.co.uk/assets/pla-tide-tables-2020.pdf", 830, 7000, 1100, (
-      "034." + "8927" +
-      "1565" + "3602" +
-      "89-"
-    )
-  ),
-  2021: (
-    "http://pla.co.uk/assets/platidetables2021webversion.pdf", 830, 7000, 1100, (
-      "047." + "1658" +
-      "3299" + "8560" +
-      "32"
-    )
-  ),
-  2022: (
-    "http://pla.co.uk/assets/platidetable2022webversion.pdf",  900, 7200, 1470, (
-      "034." + "8956" +
-      "1270" + "5221" +
-      "3007" + "3628" +
-      "8693" + "6006" +
-      "9783" + "8539" +
-      "3610" + "8655" +
-      "3990" + "5962" +
-      "6296" + "289-"
-    )
-  )
-}
-
 # Render a datetime as a string
 def to_str(dt):
   return datetime.datetime.strftime(dt, "%Y-%m-%dT%H:%MZ")
 
 # Download, extract and analyze the tidal information for a given year
 def get_pages(year, phases, locations, num_pages):
-  url, xoff, width, even_y, char_map = METADATA[year]
+  url, begin_page, force_even, xoff, width, even_y, char_map = METADATA[year]
   print(f"{year}:")
 
   # Phase 1 - download
   if 1 in phases:
     print(f"  Downloading PDF for {year} from {url}...")
-    pdf = urllib.request.urlopen(url).read()
+    req = urllib.request.Request(
+      url, 
+      data = None, 
+      headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+      }
+    )
+    pdf = urllib.request.urlopen(req).read()
     with open(f"{year}.pdf", "wb") as f:
       f.write(pdf)
 
@@ -101,12 +39,12 @@ def get_pages(year, phases, locations, num_pages):
     for page in range(0, num_pages):
       print(f"    Extracting page {page}...")
       png = f"{year}/{page:02d}.png"
-      os.system(f"convert -density 1600 -trim {year}.pdf[{39 + page}] -rotate 90 +repage {png}")
+      os.system(f"convert -density 1600 -trim {year}.pdf[{begin_page + page}] -rotate 90 +repage {png}")
 
   # Phase 3 - analysis
   if 3 in phases:
     print("  Analyzing pages:")
-    ocr = tide_ocr.SimpleOCR(str(year), year, xoff, width, even_y, 0, num_pages)
+    ocr = tide_ocr.SimpleOCR(str(year), year, xoff, width, even_y, force_even, 0, num_pages)
     ocr.do_ocr()
     results = ocr.parse_all(char_map)
 
