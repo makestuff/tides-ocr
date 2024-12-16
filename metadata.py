@@ -83,5 +83,13 @@ METADATA = {
     "https://pla.co.uk/sites/default/files/2024-02/platidebooklet2024.pdf", 16, True, 900, 7200, 1100, (
       "0283.947156"
     )
+  ),
+  2025: (
+    "https://pla.co.uk/sites/default/files/2024-12/PLA-Tide-Booklet-2025.pdf", 31, False, 900, 7200, 1100, (
+      "084." + "1623" +
+      "7950" + "5273" +
+      "9486" + "1430" +
+      "6"
+    )
   )
 }
