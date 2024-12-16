@@ -9,6 +9,17 @@ LOCATIONS = [
   "London Bridge (Tower Pier)"
 ]
 
+# Enum to avoid magic numbers
+from enum import IntEnum
+class Location(IntEnum):
+    WALTON_ON_THE_NAZE = 0
+    MARGATE            = 1
+    SHIVERING_SAND     = 2
+    SOUTHEND_ON_SEA    = 3
+    TILBURY            = 4
+    NORTH_WOOLWICH     = 5
+    LONDON_BRIDGE      = 6
+
 # Metadata for each year
 METADATA = {
   2016: (
@@ -69,7 +80,7 @@ METADATA = {
     )
   ),
   2024: (
-    "http://www.pla.co.uk/assets/platidebooklet2024.pdf", 16, True, 900, 7200, 1100, (
+    "https://pla.co.uk/sites/default/files/2024-02/platidebooklet2024.pdf", 16, True, 900, 7200, 1100, (
       "0283.947156"
     )
   )
