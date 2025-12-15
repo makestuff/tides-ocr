@@ -7,4 +7,4 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install pytz opencv-python-headless matplotlib jupyterlab
 RUN pip install pandas scipy
-RUN sed -i 's#<policy domain="coder" rights="none" pattern="PDF" />#<policy domain="coder" rights="read|write" pattern="PDF" />#g; s#<policy domain="resource" name="memory" value="256MiB"/>#<policy domain="resource" name="memory" value="1GiB"/>#g; s#<policy domain="resource" name="disk" value="1GiB"/>#<policy domain="resource" name="disk" value="8GiB"/>#g' /etc/ImageMagick-6/policy.xml
+RUN sed -i 's#</policymap>#  <policy domain="coder" rights="read|write" pattern="PDF" />\n</policymap>#g;s#<policy domain="resource" name="disk" value="2GiB"/>#<policy domain="resource" name="disk" value="8GiB"/>#g' /etc/ImageMagick-7/policy.xml
