@@ -97,7 +97,7 @@ def get_list(str):
 # Main entry-point
 if len(sys.argv) != 5:
   print(f"Synopsis: {sys.argv[0]} <years> <phases> <locations> <num-pages>")
-  print(f"\n    e.g {sys.argv[0]} 2016-2026 1-3, 0-6 48")
+  print(f"\n    e.g {sys.argv[0]} 2025-2026 1-3, 0-6 48")
   print("\n    phases:")
   print("      1: Download PDFs")
   print("      2: Extract PNGs")

@@ -34,7 +34,7 @@ def image_load_crop_fixup(name, x, y, w):
   if name in fixups:
     for x, y, w, h in fixups[name]:
       erase_region(cropped, x, y, w, h)
-  return cropped
+  return cv2.copyMakeBorder(cropped, 0, 10, 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
 
 # The cv2.findContours() operation seems to find "inner" bounding rects sometimes (e.g the "hole" in a digit 6). We need to remove them.
 def remove_inners(bboxes):
